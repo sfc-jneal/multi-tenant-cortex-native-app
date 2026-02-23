@@ -2,15 +2,13 @@
 
 A fully automated multi-tenant architecture for Snowflake Cortex Agents using **per-tenant service users** with **key-pair authentication**. 
 
-**Zero provider intervention required for tenant onboarding!**
-
 ## What This Solves
 
 When multiple tenants share a Cortex Agent, each tenant should only see their own data in responses. This repo implements tenant isolation using:
 
 - Per-tenant service users for identity
 - Row Access Policy that filters data by `CURRENT_USER()`
-- Self-service onboarding via Native App (no provider intervention)
+- Self-service onboarding via Native App
 
 Single agent, single data model, many tenants - each seeing only their rows.
 
@@ -43,10 +41,10 @@ Consumer Account                              Provider Account
 
 | Feature | This Architecture |
 |---------|-------------------|
-| **Self-service** | Yes - no provider interaction needed |
-| **Onboarding time** | 1-2 minutes (automated) |
-| **Provider effort per tenant** | Zero |
-| **Scales to 1000s of tenants** | Yes |
+| **Self-service** | Yes |
+| **Onboarding time** | Minutes |
+| **Provider effort per tenant** | Minimal |
+| **Scales to many tenants** | Yes |
 | **Security** | Private key never leaves consumer |
 
 ## Quick Start
