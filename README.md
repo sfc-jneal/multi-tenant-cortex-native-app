@@ -35,7 +35,6 @@ Consumer Account                              Provider Account
 │                                     │      │         ▼                               │
 │                                     │      │  SHARED_AGENT (single agent)           │
 │                                     │      │         │                               │
-│                                     │      │         ▼                               │
 │  8. Get response (tenant data only) ◄──────│  RAP filters by tenant                 │
 └─────────────────────────────────────┘      └─────────────────────────────────────────┘
 ```
@@ -84,21 +83,22 @@ snow app run
 
 **That's it. No provider interaction required.**
 
-## Self-Service Flow
+## Configuration
 
-```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                        CONSUMER EXPERIENCE                                   │
-│                                                                              │
-│  ┌─────────────┐    ┌─────────────┐    ┌─────────────┐    ┌─────────────┐   │
-│  │   Install   │    │   Enter     │    │    Wait     │    │    Chat!    │   │
-│  │   Native    │ →  │   Company   │ →  │   1-2 min   │ →  │             │   │
-│  │    App      │    │    Name     │    │  (auto)     │    │             │   │
-│  └─────────────┘    └─────────────┘    └─────────────┘    └─────────────┘   │
-│                                                                              │
-│  Total time: ~3 minutes                                                      │
-│  Provider involvement: NONE                                                  │
-└─────────────────────────────────────────────────────────────────────────────┘
+Before deploying, update the placeholder values in these files:
+
+| File | What to Change |
+|------|----------------|
+| `consumer/native-app/app-package/python/chat.py` | `PROVIDER_ACCOUNT` |
+| `consumer/native-app/scripts/deploy.sh` | `PROVIDER_CONNECTION`, `CONSUMER_CONNECTION` |
+| `consumer/native-app/scripts/deploy.sql` | `YOUR_CONSUMER_ACCOUNT` |
+| `provider/sql/06_self_service_registration.sql` | `YOUR_ORG-YOUR_ACCOUNT` |
+
+Or use the config script:
+```bash
+# Create .local/config.env with your values, then:
+bash scripts/configure.sh local   # Apply your config
+bash scripts/configure.sh public  # Reset to placeholders
 ```
 
 ## Key Files
@@ -109,48 +109,17 @@ snow app run
 | `consumer/native-app/app-package/setup.sql` | Key generation, JWT auth |
 | `consumer/native-app/app-package/streamlit/chatbot.py` | Self-service UI |
 
-## How Key-Pair Auth Works
-
-```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                                                                              │
-│  Consumer generates RSA key pair:                                            │
-│  ┌─────────────────┐  ┌─────────────────┐                                   │
-│  │  PRIVATE KEY    │  │  PUBLIC KEY     │                                   │
-│  │  (stays local)  │  │  (sent to       │                                   │
-│  │                 │  │   provider)     │                                   │
-│  └────────┬────────┘  └────────┬────────┘                                   │
-│           │                    │                                             │
-│           │                    └──────► Provider stores on USER              │
-│           │                             ALTER USER x SET RSA_PUBLIC_KEY=...  │
-│           │                                                                  │
-│           ▼                                                                  │
-│  Consumer signs JWT with private key                                         │
-│  ┌─────────────────────────────────────────────────────────────┐            │
-│  │ {                                                            │            │
-│  │   "iss": "ACCOUNT.USER.SHA256:fingerprint",                 │            │
-│  │   "sub": "ACCOUNT.USER",                                     │            │
-│  │   "iat": 1234567890,                                         │            │
-│  │   "exp": 1234567950  (60 seconds)                            │            │
-│  │ }                                                            │            │
-│  └─────────────────────────────────────────────────────────────┘            │
-│           │                                                                  │
-│           ▼                                                                  │
-│  Exchange JWT for OAuth token:                                               │
-│  POST /oauth/token                                                           │
-│  grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer                     │
-│  assertion=<signed JWT>                                                      │
-│           │                                                                  │
-│           ▼                                                                  │
-│  Use OAuth token for Cortex API calls                                        │
-│                                                                              │
-└─────────────────────────────────────────────────────────────────────────────┘
-```
-
 ## Security Model
 
 | Aspect | Implementation |
 |--------|----------------|
-| **Private key** | Generated and stored only in consumer accou                                                                                                                                                                                                                                                                                                                                                                                                                                                               # multi-tenant-cortex-native-app
-# multi-tenant-cortex-native-app
-# multi-tenant-cortex-native-app
+| **Private key** | Generated and stored only in consumer account |
+| **Public key** | Safe to share (it's public!) |
+| **JWT lifetime** | 60 seconds (short-lived) |
+| **OAuth token** | ~1 hour, cached 45 min |
+| **Data isolation** | Row Access Policy with `CURRENT_USER()` |
+| **Tenant identity** | Service user per tenant with single database role |
+
+## Documentation
+
+See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for detailed architecture documentation.
