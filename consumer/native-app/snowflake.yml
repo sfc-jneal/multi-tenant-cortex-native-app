@@ -1,0 +1,11 @@
+definition_version: 2
+native_app:
+  name: mt_agent_demo_app
+  artifacts:
+    - src: app-package/*
+      dest: ./
+  package:
+    name: mt_agent_demo_app_pkg
+    distribution: internal
+    scripts:
+      - scripts/deploy.sql

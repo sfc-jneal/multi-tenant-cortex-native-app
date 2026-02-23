@@ -1,0 +1,40 @@
+manifest_version: 1
+
+version:
+  name: V1_0
+  label: "Version 1.0"
+  comment: "Service User key-pair auth"
+
+artifacts:
+  setup_script: setup.sql
+  default_streamlit: CORE.CHATBOT
+  extension_code: true
+
+configuration:
+  log_level: INFO
+  trace_level: OFF
+
+references:
+  - external_access:
+      label: "Cortex API Access"
+      description: "Required for OAuth token exchange and Cortex API calls"
+      privileges:
+        - USAGE
+      object_type: EXTERNAL ACCESS INTEGRATION
+      required_at_setup: true
+      register_callback: CONFIG.REGISTER_EAI_CALLBACK
+      configuration_callback: CONFIG.GET_EAI_CONFIGURATION
+  - status_view:
+      label: "Registration Status View"
+      description: "Provider view to check registration status"
+      privileges:
+        - SELECT
+      object_type: VIEW
+      register_callback: CONFIG.REGISTER_REFERENCE
+  - registration_table:
+      label: "Registration Requests Table"
+      description: "Provider table to submit registration requests"
+      privileges:
+        - INSERT
+      object_type: TABLE
+      register_callback: CONFIG.REGISTER_REFERENCE

@@ -1,0 +1,21 @@
+# Local configuration (not tracked in git)
+.local/
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+venv/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Snowflake CLI
+.snowflake/
